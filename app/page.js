@@ -196,8 +196,15 @@ if (pendingCafeComputer !== null) {
   }
 
   function startWorld() {
-    setView('world'); setScene('street'); setArrival(0); setFlyerVisible(false); setPlayer({x:10,y:69}); setComputer(null);
-  }
+  setView('world');
+  setScene('street');
+  setArrival(0);
+  setFlyerVisible(false);
+  setPlayer({ x: 10, y: 69 });
+  setComputer(null);
+  setPendingCafeComputer(null);
+  setSelected(null);
+}
 
   function movePlayer(dx,dy) {
     if (scene !== 'street') return;
