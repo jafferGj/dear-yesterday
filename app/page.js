@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import ComicWorld from "./components/ComicWorld";
 import Script from 'next/script';
 import { getSupabaseBrowser } from '../lib/supabase-browser';
 
