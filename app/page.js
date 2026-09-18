@@ -31,6 +31,7 @@ export default function Home() {
   const [player, setPlayer] = useState({ x:10, y:69 });
   const [flyerVisible, setFlyerVisible] = useState(false);
   const [computer, setComputer] = useState(null);
+  const [pendingCafeComputer, setPendingCafeComputer] = useState(null);
   const [session, setSession] = useState(null);
   const [profile, setProfile] = useState(null);
   const [people, setPeople] = useState([]);
@@ -89,12 +90,12 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    if (view === 'world' && scene === 'street' && arrival >= 120) setFlyerVisible(true);
+    if (view === 'world' && scene === 'street' && arrival >= 10) setFlyerVisible(true);
   }, [arrival, view, scene]);
 
   useEffect(() => {
     if (view !== 'world' || scene !== 'street') return;
-    const timer = setInterval(() => setArrival(v => Math.min(v + 1, 180)), 1000);
+    const timer = setInterval(() => setArrival(v => Math.min(v + 1, 10)), 1000);
     return () => clearInterval(timer);
   }, [view, scene]);
 
