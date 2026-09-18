@@ -316,7 +316,7 @@ export default function Home() {
       {view==='intro'&&<section className="intro-screen"><div className="intro-card scanlines"><div className="datecode">CHENNAI · 2001 · 06:47 PM</div><h1>Somewhere between<br/><em>yesterday</em> and tomorrow.</h1><p>A small retro world for people who still believe the right person can be found in an ordinary place.</p><button className="big-button" onClick={startWorld}>ENTER SPENCER PLAZA</button><button className="ghost-button" onClick={()=>setView('account')}>{session?'OPEN ACCOUNT':'CREATE / LOGIN'}</button><div className="tiny">PHASE I · CHENNAI 2001 · SPENCER PLAZA</div></div></section>}
 
       {view==='world'&&<>
-        <div className="world-head"><div><b>SPENCER PLAZA</b><span>CHENNAI · 2001</span></div><div className="world-time">{scene==='street'?`EXPLORING · ${Math.min(arrival,30)}s / 30s`:'NET CAFÉ · 2001'}</div></div>
+        <div className="world-head"><div><b>SPENCER PLAZA</b><span>CHENNAI · 2001</span></div><div className="world-time">{scene==='street'?`EXPLORING · ${Math.min(arrival,10)}s / 10s`:'NET CAFÉ · 2001'}</div></div>
         {scene==='street' ? (
   <ComicWorld
     playerGender={playerGender}
