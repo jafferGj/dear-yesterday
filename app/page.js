@@ -307,17 +307,43 @@ export default function Home() {
       {view==='intro'&&<section className="intro-screen"><div className="intro-card scanlines"><div className="datecode">CHENNAI · 2001 · 06:47 PM</div><h1>Somewhere between<br/><em>yesterday</em> and tomorrow.</h1><p>A small retro world for people who still believe the right person can be found in an ordinary place.</p><button className="big-button" onClick={startWorld}>ENTER SPENCER PLAZA</button><button className="ghost-button" onClick={()=>setView('account')}>{session?'OPEN ACCOUNT':'CREATE / LOGIN'}</button><div className="tiny">PHASE I · CHENNAI 2001 · SPENCER PLAZA</div></div></section>}
 
       {view==='world'&&<>
-        <div className="world-head"><div><b>SPENCER PLAZA</b><span>CHENNAI · 2001</span></div><div className="world-time">{scene==='street'?`EXPLORING · ${Math.min(arrival,120)}s / 120s`:'NET CAFÉ · 2001'}</div></div>
-        {scene==='street'?<section className="world-scene">
-         <ComicWorld
-  playerGender={gender}
-  flyerVisible={flyerVisible}
-  arrival={arrival}
-  onEnterCafe={enterCafe}
-  onNotice={(message) => {
-    console.log(message);
-  }}
-/>
+        <div className="world-head"><div><b>SPENCER PLAZA</b><span>CHENNAI · 2001</span></div><div className="world-time">{scene==='street'?`EXPLORING · ${Math.min(arrival,30)}s / 30s`:'NET CAFÉ · 2001'}</div></div>
+        {scene==='street' ? (
+  <ComicWorld
+    playerGender={playerGender}
+    flyerVisible={flyerVisible}
+    arrival={arrival}
+    onEnterCafe={enterCafe}
+    onNotice={(message) => setNotice(message)}
+  />
+) : (
+  <Cafe
+    computer={computer}
+    setComputer={setComputer}
+    leaveCafe={leaveCafe}
+    openMail={() => {
+      setView('mail');
+      setSelected(null);
+    }}
+    openShops={() => setShopOpen(true)}
+  />
+)}
+
+  <div className="world-shelf">
+
+    <b>MORE WORLDS</b>
+
+    <span>MARINA BEACH · FREE SOON</span>
+
+    <span>🔒 KASHMIR · 2004</span>
+
+    <span>🔒 ROOFTOP DATE · 2005</span>
+
+    <span>🔒 TOKYO · 2006</span>
+
+  </div>
+
+</>}
 
       {view==='mail'&&<section className="app-panel"><div className="retro-window"><div className="windowbar"><span>DEARMAIL_2001.EXE</span><button onClick={()=>setView('world')}>×</button></div><div className="mail-layout"><aside className="mail-side"><b>INBOX</b><button onClick={()=>setView('world')}>← WORLD</button>{people.map(p=><button key={p.id} onClick={()=>openPerson(p)} className={selected?.id===p.id?'sel':''}>{p.display_name}<small>@{p.username}</small></button>)}</aside><div className="mail-main"><div className="mail-title">{selected?`CHAT · ${selected.display_name}`:'DEARMAIL'}</div><div className="chat">{selected?messages.map(m=><div key={m.id} className={`bubble ${m.sender_id===session?.user?.id?'mine':''}`}>{m.body}<small>{new Date(m.created_at).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</small></div>):<div className="empty-mail"><b>Welcome to DearMail.</b><p>This is the fictional in-world internet. Choose a member to start a real conversation.</p></div>}</div>{selected&&session&&(connectionStatus!=='accepted'?<div className="connect-box"><b>{connectionStatus==='pending'?'REQUEST SENT':connectionStatus==='pending_incoming'?'THIS MEMBER WANTS TO CONNECT':'MAKE A CONNECTION'}</b><p>{connectionStatus==='pending'?'Wait for mutual acceptance.':connectionStatus==='pending_incoming'?'Accept to open DearMail.':'Both people must agree before chatting or sharing external contact details.'}</p><button onClick={connect}>{connectionStatus==='pending_incoming'?'ACCEPT CONNECTION':connectionStatus==='pending'?'WAITING…':'SEND CONNECTION REQUEST'}</button></div>:<><div className="composer"><input value={draft} onChange={e=>setDraft(e.target.value)} onKeyDown={e=>e.key==='Enter'&&send()} placeholder="type a message…"/><button onClick={send}>SEND</button></div><div className="actions"><button onClick={report}>REPORT</button><button onClick={block}>BLOCK</button>{selectedSocials?.whatsapp_url&&<a href={selectedSocials.whatsapp_url} target="_blank" rel="noreferrer">WHATSAPP</a>}{selectedSocials?.instagram_url&&<a href={selectedSocials.instagram_url} target="_blank" rel="noreferrer">INSTAGRAM</a>}<span className="consent-note">Mutual connection: external contact is visible only after acceptance.</span></div></>)}</div></div><div className="mail-status">CONNECTED TO SPENCER PLAZA NET CAFÉ · NOT REAL GMAIL</div></div></section>}
 
