@@ -173,9 +173,17 @@ export default function Home() {
   }
 
   function enterCafe() {
-    if (!flyerVisible) { setNotice(`The flyer appears after 2 minutes of exploring. ${Math.max(0,120-arrival)} seconds to go.`); return; }
-    setScene('cafe'); visit('SPENCER PLAZA · 2001');
+  if (!flyerVisible && arrival < 10) {
+    setNotice(
+      `Explore Spencer Plaza for ${Math.max(0, 10 - arrival)} more seconds.`
+    );
+    return;
   }
+
+  setFlyerVisible(true);
+  setScene('cafe');
+  visit('SPENCER PLAZA · 2001');
+}
   function leaveCafe(){ setScene('street'); setComputer(null); }
 
   async function openPerson(p) {
