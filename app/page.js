@@ -327,15 +327,24 @@ export default function Home() {
   />
 ) : (
   <Cafe
-    computer={computer}
-    setComputer={setComputer}
-    leaveCafe={leaveCafe}
-    openMail={() => {
-      setView('mail');
-      setSelected(null);
-    }}
-    openShops={() => setShopOpen(true)}
-  />
+  computer={computer}
+  setComputer={setComputer}
+  leaveCafe={leaveCafe}
+  openMail={() => {
+    if (!session) {
+      setPendingCafeComputer(computer);
+      setView('account');
+      setAuthMsg(
+        'LOGIN REQUIRED — Your selected Net Café computer is waiting for you.'
+      );
+      return;
+    }
+
+    setView('mail');
+    setSelected(null);
+  }}
+  openShops={() => setShopOpen(true)}
+/>
 )}
 
   <div className="world-shelf">
