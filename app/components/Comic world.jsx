@@ -1,1482 +1,1934 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const NPCS = [
   {
-    id: "karthik",
-    name: "Karthik",
-    role: "college friend",
-    x: 0.16,
-    y: 0.66,
-    color: "#6d5845",
-    hair: "#171512",
-    shirt: "#b9a47a",
-    speed: 0.000055,
-    dialogue: [
-      "Hey! Have you seen the new net cafe?",
-      "Spencer Plaza is packed today.",
-      "I heard someone is looking for friends online."
-    ]
-  },
-  {
-    id: "meena",
-    name: "Meena",
-    role: "shopper",
-    x: 0.31,
-    y: 0.69,
-    color: "#8d6955",
-    hair: "#171512",
-    shirt: "#b65f58",
-    speed: 0.000045,
-    dialogue: [
-      "That shop has the cutest stuff.",
-      "Are you waiting for someone?",
-      "Everyone seems to be online these days."
-    ]
-  },
-  {
-    id: "arun",
+    id: 1,
     name: "Arun",
-    role: "music lover",
-    x: 0.47,
-    y: 0.61,
-    color: "#755c4d",
-    hair: "#171512",
-    shirt: "#66705a",
-    speed: 0.00005,
-    dialogue: [
-      "Did you hear that song?",
-      "I need to buy a new cassette.",
-      "Music makes this place better."
-    ]
+    x: 0.19,
+    y: 0.67,
+    shirt: "#d9c6a5",
+    pants: "#30353a",
+    hair: "#171717",
+    dialogue: "Machan, net cafe open ah?",
+    speed: 0.12,
+    direction: 1,
   },
   {
-    id: "divya",
-    name: "Divya",
-    role: "student",
-    x: 0.63,
-    y: 0.7,
-    color: "#a87965",
-    hair: "#171512",
-    shirt: "#9a7566",
-    speed: 0.000047,
-    dialogue: [
-      "My friends are inside.",
-      "Wait... are you new here?",
-      "The cafe upstairs is interesting."
-    ]
-  },
-  {
-    id: "ravi",
-    name: "Ravi",
-    role: "shopkeeper",
-    x: 0.78,
-    y: 0.62,
-    color: "#765747",
-    hair: "#171512",
-    shirt: "#756c54",
-    speed: 0.000035,
-    dialogue: [
-      "Come and have a look!",
-      "New arrivals today!",
-      "Don't stand in the middle of the road!"
-    ]
-  },
-  {
-    id: "priya",
+    id: 2,
     name: "Priya",
-    role: "student",
-    x: 0.88,
+    x: 0.35,
+    y: 0.71,
+    shirt: "#b85c51",
+    pants: "#27262a",
+    hair: "#211916",
+    dialogue: "I think someone is waiting upstairs.",
+    speed: 0.09,
+    direction: -1,
+  },
+  {
+    id: 3,
+    name: "Karthik",
+    x: 0.58,
+    y: 0.68,
+    shirt: "#496c72",
+    pants: "#24262b",
+    hair: "#181818",
+    dialogue: "Only twenty computers da!",
+    speed: 0.1,
+    direction: 1,
+  },
+  {
+    id: 4,
+    name: "Meena",
+    x: 0.77,
+    y: 0.73,
+    shirt: "#c59a58",
+    pants: "#38312c",
+    hair: "#191513",
+    dialogue: "Did you check your mail?",
+    speed: 0.08,
+    direction: -1,
+  },
+];
+
+const PEOPLE = [
+  {
+    x: 0.12,
     y: 0.7,
-    color: "#9b705f",
-    hair: "#211713",
-    shirt: "#7b6570",
-    speed: 0.000052,
-    dialogue: [
-      "I think I saw you earlier.",
-      "Are you waiting for someone?",
-      "Maybe today's your lucky day."
-    ]
+    scale: 0.82,
+    shirt: "#7c5c4e",
+    pants: "#27292c",
+    hair: "#161616",
+    gender: "male",
+  },
+  {
+    x: 0.28,
+    y: 0.76,
+    scale: 0.92,
+    shirt: "#b65b58",
+    pants: "#36343a",
+    hair: "#211714",
+    gender: "female",
+  },
+  {
+    x: 0.48,
+    y: 0.74,
+    scale: 0.8,
+    shirt: "#557078",
+    pants: "#292a2d",
+    hair: "#171717",
+    gender: "male",
+  },
+  {
+    x: 0.67,
+    y: 0.77,
+    scale: 0.94,
+    shirt: "#d1a36d",
+    pants: "#40383a",
+    hair: "#201714",
+    gender: "female",
+  },
+  {
+    x: 0.9,
+    y: 0.7,
+    scale: 0.8,
+    shirt: "#726c61",
+    pants: "#27282b",
+    hair: "#151515",
+    gender: "male",
+  },
+];
+
+function clamp(value, min, max) {
+  return Math.max(min, Math.min(max, value));
+}
+
+function lerp(a, b, amount) {
+  return a + (b - a) * amount;
+}
+
+function drawLine(ctx, points, width = 2) {
+  if (!points.length) return;
+
+  ctx.beginPath();
+  ctx.moveTo(points[0][0], points[0][1]);
+
+  for (let i = 1; i < points.length; i += 1) {
+    ctx.lineTo(points[i][0], points[i][1]);
   }
-];
 
-const WAYPOINTS = [
-  [0.08, 0.68],
-  [0.2, 0.62],
-  [0.34, 0.7],
-  [0.48, 0.61],
-  [0.61, 0.7],
-  [0.73, 0.63],
-  [0.86, 0.7],
-  [0.94, 0.63]
-];
-
-function clamp(v, min, max) {
-  return Math.max(min, Math.min(max, v));
-}
-
-function lerp(a, b, t) {
-  return a + (b - a) * t;
-}
-
-function roundedRect(ctx, x, y, w, h, r) {
-  const rr = Math.min(r, Math.abs(w) / 2, Math.abs(h) / 2);
-
-  ctx.beginPath();
-  ctx.moveTo(x + rr, y);
-  ctx.lineTo(x + w - rr, y);
-  ctx.quadraticCurveTo(x + w, y, x + w, y + rr);
-  ctx.lineTo(x + w, y + h - rr);
-  ctx.quadraticCurveTo(x + w, y + h, x + w - rr, y + h);
-  ctx.lineTo(x + rr, y + h);
-  ctx.quadraticCurveTo(x, y + h, x, y + h - rr);
-  ctx.lineTo(x, y + rr);
-  ctx.quadraticCurveTo(x, y, x + rr, y);
-  ctx.closePath();
-}
-
-function roughLine(ctx, x1, y1, x2, y2, wobble = 1.5) {
-  ctx.beginPath();
-  ctx.moveTo(x1, y1);
-
-  const mx = (x1 + x2) / 2;
-  const my = (y1 + y2) / 2;
-
-  ctx.quadraticCurveTo(
-    mx + Math.sin(x1 * 0.17 + y2) * wobble,
-    my + Math.cos(y1 * 0.13 + x2) * wobble,
-    x2,
-    y2
-  );
-
+  ctx.lineWidth = width;
   ctx.stroke();
 }
 
-function drawPaperTexture(ctx, w, h, t) {
+function drawFace(ctx, x, y, scale, hair, female = false) {
   ctx.save();
 
-  ctx.globalAlpha = 0.045;
+  ctx.fillStyle = "#c9976b";
+  ctx.strokeStyle = "#211f1b";
+  ctx.lineWidth = Math.max(1, 2 * scale);
 
-  for (let i = 0; i < 180; i++) {
-    const x = (i * 137.3) % w;
-    const y = (i * 83.7) % h;
-    const s = 1 + ((i * 7) % 3);
-
-    ctx.fillStyle = i % 2 ? "#171512" : "#fff8dc";
-    ctx.fillRect(x, y, s, s);
-  }
-
-  ctx.globalAlpha = 0.035;
-
-  for (let y = 0; y < h; y += 5) {
-    ctx.fillRect(0, y, w, 1);
-  }
-
-  ctx.restore();
-}
-
-function drawSky(ctx, w, h) {
-  ctx.fillStyle = "#cfc39d";
-  ctx.fillRect(0, 0, w, h);
-
-  ctx.fillStyle = "#bdb28f";
   ctx.beginPath();
-  ctx.arc(w * 0.79, h * 0.17, Math.min(w, h) * 0.065, 0, Math.PI * 2);
-  ctx.fill();
-
-  ctx.strokeStyle = "#625b48";
-  ctx.lineWidth = 2;
-
-  for (let i = 0; i < 5; i++) {
-    roughLine(
-      ctx,
-      w * 0.05 + i * 80,
-      h * 0.22 + i * 8,
-      w * 0.19 + i * 80,
-      h * 0.2 + i * 8,
-      2
-    );
-  }
-}
-
-function drawSpencer(ctx, w, h) {
-  const buildingY = h * 0.29;
-  const buildingH = h * 0.38;
-
-  ctx.fillStyle = "#867d64";
-  ctx.strokeStyle = "#25231d";
-  ctx.lineWidth = 4;
-
-  roundedRect(ctx, w * 0.07, buildingY, w * 0.86, buildingH, 5);
+  ctx.ellipse(
+    x,
+    y,
+    15 * scale,
+    18 * scale,
+    0,
+    0,
+    Math.PI * 2
+  );
   ctx.fill();
   ctx.stroke();
 
-  ctx.fillStyle = "#615b49";
+  ctx.fillStyle = hair;
 
-  for (let i = 0; i < 10; i++) {
-    const x = w * 0.1 + i * w * 0.082;
+  ctx.beginPath();
 
-    roundedRect(
-      ctx,
+  if (female) {
+    ctx.arc(
       x,
-      buildingY + buildingH * 0.12,
-      w * 0.055,
-      buildingH * 0.15,
-      3
+      y - 4 * scale,
+      17 * scale,
+      Math.PI,
+      Math.PI * 2
     );
 
     ctx.fill();
-  }
 
-  ctx.fillStyle = "#dad0ac";
-  ctx.font = `bold ${Math.max(18, w * 0.034)}px Georgia`;
-  ctx.textAlign = "center";
-  ctx.fillText("SPENCER PLAZA", w / 2, buildingY + buildingH * 0.055);
-
-  const shops = [
-    ["MUSIC", 0.1],
-    ["BOOKS", 0.27],
-    ["VIDEO", 0.44],
-    ["FASHION", 0.61],
-    ["ELECTRONICS", 0.77]
-  ];
-
-  shops.forEach(([label, p], i) => {
-    const x = w * p;
-    const y = buildingY + buildingH * 0.48;
-
-    ctx.fillStyle = i % 2 ? "#4f5340" : "#62564a";
-
-    roundedRect(ctx, x, y, w * 0.13, h * 0.105, 4);
+    ctx.beginPath();
+    ctx.moveTo(x - 16 * scale, y - 4 * scale);
+    ctx.quadraticCurveTo(
+      x - 22 * scale,
+      y + 15 * scale,
+      x - 12 * scale,
+      y + 20 * scale
+    );
+    ctx.lineTo(x - 8 * scale, y + 3 * scale);
+    ctx.closePath();
     ctx.fill();
 
-    ctx.strokeStyle = "#27251e";
-    ctx.lineWidth = 3;
-    ctx.stroke();
-
-    ctx.fillStyle = "#e2d6b1";
-    ctx.font = `bold ${Math.max(9, w * 0.014)}px monospace`;
-    ctx.textAlign = "center";
-    ctx.fillText(label, x + w * 0.065, y + h * 0.06);
-  });
-
-  ctx.strokeStyle = "#3c392f";
-  ctx.lineWidth = 3;
-
-  roughLine(
-    ctx,
-    w * 0.04,
-    buildingY + buildingH,
-    w * 0.96,
-    buildingY + buildingH,
-    2
-  );
-}
-
-function drawRoad(ctx, w, h) {
-  const y = h * 0.67;
-
-  ctx.fillStyle = "#706958";
-  ctx.fillRect(0, y, w, h - y);
-
-  ctx.strokeStyle = "#c7bb91";
-  ctx.lineWidth = 4;
-  ctx.setLineDash([30, 20]);
-
-  ctx.beginPath();
-  ctx.moveTo(0, y + h * 0.14);
-  ctx.lineTo(w, y + h * 0.14);
-  ctx.stroke();
-
-  ctx.setLineDash([]);
-
-  ctx.strokeStyle = "#343128";
-  ctx.lineWidth = 3;
-
-  for (let i = 0; i < 8; i++) {
-    const x = w * 0.05 + i * w * 0.13;
-
     ctx.beginPath();
-    ctx.moveTo(x, y);
-    ctx.lineTo(x - 8, y - h * 0.045);
-    ctx.stroke();
-
-    ctx.beginPath();
-    ctx.moveTo(x - 8, y - h * 0.045);
-    ctx.lineTo(x - 20, y - h * 0.06);
-    ctx.stroke();
-
-    ctx.beginPath();
-    ctx.moveTo(x - 8, y - h * 0.045);
-    ctx.lineTo(x + 5, y - h * 0.062);
-    ctx.stroke();
-  }
-}
-
-function drawBench(ctx, x, y, s) {
-  ctx.save();
-
-  ctx.strokeStyle = "#25231d";
-  ctx.lineWidth = 3;
-  ctx.fillStyle = "#7a654c";
-
-  roundedRect(ctx, x, y, 80 * s, 10 * s, 3);
-  ctx.fill();
-  ctx.stroke();
-
-  ctx.fillRect(x + 8 * s, y + 10 * s, 7 * s, 30 * s);
-  ctx.fillRect(x + 65 * s, y + 10 * s, 7 * s, 30 * s);
-
-  ctx.restore();
-}
-
-function drawPlant(ctx, x, y, s) {
-  ctx.save();
-
-  ctx.strokeStyle = "#29291f";
-  ctx.lineWidth = 3;
-
-  ctx.beginPath();
-  ctx.moveTo(x, y);
-  ctx.lineTo(x, y - 40 * s);
-  ctx.stroke();
-
-  for (let i = 0; i < 5; i++) {
-    const angle = -1.1 + i * 0.55;
-
-    ctx.beginPath();
-    ctx.moveTo(x, y - 20 * s);
-    ctx.lineTo(
-      x + Math.cos(angle) * 30 * s,
-      y - 20 * s + Math.sin(angle) * 25 * s
+    ctx.moveTo(x + 16 * scale, y - 4 * scale);
+    ctx.quadraticCurveTo(
+      x + 22 * scale,
+      y + 15 * scale,
+      x + 12 * scale,
+      y + 20 * scale
     );
-    ctx.stroke();
-  }
-
-  ctx.fillStyle = "#6c7050";
-  ctx.beginPath();
-  ctx.ellipse(x, y + 4 * s, 17 * s, 8 * s, 0, 0, Math.PI * 2);
-  ctx.fill();
-
-  ctx.stroke();
-
-  ctx.restore();
-}
-
-function drawFace(ctx, x, y, s, expression, facing) {
-  ctx.fillStyle = "#201b16";
-
-  const eyeY = y - 2 * s;
-
-  ctx.beginPath();
-  ctx.arc(x - 6 * s, eyeY, 1.7 * s, 0, Math.PI * 2);
-  ctx.arc(x + 6 * s, eyeY, 1.7 * s, 0, Math.PI * 2);
-  ctx.fill();
-
-  ctx.strokeStyle = "#201b16";
-  ctx.lineWidth = 1.8 * s;
-
-  if (expression === "happy") {
-    ctx.beginPath();
-    ctx.arc(x, y + 5 * s, 7 * s, 0, Math.PI);
-    ctx.stroke();
-  } else if (expression === "surprised") {
-    ctx.beginPath();
-    ctx.arc(x, y + 5 * s, 3.5 * s, 0, Math.PI * 2);
-    ctx.stroke();
-  } else if (expression === "sad") {
-    ctx.beginPath();
-    ctx.arc(x, y + 10 * s, 7 * s, Math.PI, Math.PI * 2);
-    ctx.stroke();
-  } else if (expression === "angry") {
-    ctx.beginPath();
-    ctx.moveTo(x - 10 * s, eyeY - 5 * s);
-    ctx.lineTo(x - 3 * s, eyeY - 1 * s);
-    ctx.moveTo(x + 10 * s, eyeY - 5 * s);
-    ctx.lineTo(x + 3 * s, eyeY - 1 * s);
-    ctx.stroke();
-
-    ctx.beginPath();
-    ctx.moveTo(x - 5 * s, y + 7 * s);
-    ctx.lineTo(x + 5 * s, y + 7 * s);
-    ctx.stroke();
+    ctx.lineTo(x + 8 * scale, y + 3 * scale);
+    ctx.closePath();
+    ctx.fill();
   } else {
     ctx.beginPath();
-    ctx.moveTo(x - 5 * s, y + 6 * s);
-    ctx.lineTo(x + 5 * s, y + 6 * s);
-    ctx.stroke();
+    ctx.arc(
+      x,
+      y - 7 * scale,
+      16 * scale,
+      Math.PI,
+      Math.PI * 2
+    );
+    ctx.fill();
   }
 
-  if (facing < 0) {
-    ctx.globalAlpha = 0.3;
-    ctx.fillRect(x - 11 * s, y - 10 * s, 3 * s, 18 * s);
-    ctx.globalAlpha = 1;
-  }
+  ctx.strokeStyle = "#211f1b";
+  ctx.lineWidth = Math.max(1, 1.4 * scale);
+
+  ctx.beginPath();
+  ctx.moveTo(x - 7 * scale, y - 1 * scale);
+  ctx.lineTo(x - 3 * scale, y - 1 * scale);
+
+  ctx.moveTo(x + 3 * scale, y - 1 * scale);
+  ctx.lineTo(x + 7 * scale, y - 1 * scale);
+
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.arc(
+    x,
+    y + 5 * scale,
+    4 * scale,
+    0.1,
+    Math.PI - 0.1
+  );
+  ctx.stroke();
+
+  ctx.restore();
 }
 
 function drawCharacter(
   ctx,
   x,
-  y,
+  groundY,
   scale,
-  character,
-  state,
-  expression,
-  facing,
-  phase,
-  gender = "male"
+  options = {}
 ) {
+  const {
+    shirt = "#566f70",
+    pants = "#303034",
+    hair = "#171717",
+    female = false,
+    walking = false,
+    direction = 1,
+    player = false,
+  } = options;
+
+  const bob =
+    walking
+      ? Math.sin(Date.now() / 110) * 2 * scale
+      : 0;
+
+  const bodyY = groundY - 55 * scale + bob;
+
   ctx.save();
 
-  const s = scale;
+  ctx.translate(x, 0);
 
-  let walk = 0;
-
-  if (state === "walk" || state === "run") {
-    walk = Math.sin(phase * (state === "run" ? 1.8 : 1));
+  if (direction < 0) {
+    ctx.scale(-1, 1);
   }
 
-  const speedMultiplier = state === "run" ? 1.5 : 1;
-
-  ctx.translate(x, y);
-  ctx.scale(facing, 1);
-
-  /* shadow */
-
-  ctx.fillStyle = "rgba(20,18,14,.28)";
-  ctx.beginPath();
-  ctx.ellipse(0, 30 * s, 23 * s, 6 * s, 0, 0, Math.PI * 2);
-  ctx.fill();
+  ctx.strokeStyle = "#211f1b";
+  ctx.fillStyle = shirt;
+  ctx.lineWidth = Math.max(1.5, 2.5 * scale);
 
   /* legs */
 
-  ctx.strokeStyle = "#25211b";
-  ctx.lineWidth = 5 * s;
-  ctx.lineCap = "round";
-
-  const legA = walk * 13 * speedMultiplier;
-  const legB = -walk * 13 * speedMultiplier;
-
-  roughLine(ctx, -7 * s, 10 * s, -10 * s + legA, 31 * s, 1);
-  roughLine(ctx, 7 * s, 10 * s, 10 * s + legB, 31 * s, 1);
+  ctx.beginPath();
+  ctx.moveTo(-6 * scale, groundY - 27 * scale);
+  ctx.lineTo(-9 * scale, groundY);
+  ctx.moveTo(6 * scale, groundY - 27 * scale);
+  ctx.lineTo(
+    walking
+      ? 12 * scale
+      : 9 * scale,
+    groundY
+  );
+  ctx.stroke();
 
   /* shoes */
 
-  ctx.lineWidth = 6 * s;
+  ctx.lineWidth = Math.max(1.5, 2 * scale);
 
   ctx.beginPath();
-  ctx.moveTo(-10 * s + legA, 31 * s);
-  ctx.lineTo(-17 * s + legA, 32 * s);
+  ctx.moveTo(-12 * scale, groundY);
+  ctx.lineTo(-3 * scale, groundY);
+
+  ctx.moveTo(
+    walking
+      ? 8 * scale
+      : 5 * scale,
+    groundY
+  );
+  ctx.lineTo(15 * scale, groundY);
+
   ctx.stroke();
 
-  ctx.beginPath();
-  ctx.moveTo(10 * s + legB, 31 * s);
-  ctx.lineTo(17 * s + legB, 32 * s);
-  ctx.stroke();
+  /* body */
 
-  /* torso */
-
-  ctx.fillStyle = character.shirt;
+  ctx.fillStyle = shirt;
 
   ctx.beginPath();
-  ctx.moveTo(-14 * s, -17 * s);
-  ctx.lineTo(14 * s, -17 * s);
-  ctx.lineTo(12 * s, 12 * s);
-  ctx.lineTo(-12 * s, 12 * s);
-  ctx.closePath();
+
+  if (female) {
+    ctx.moveTo(-13 * scale, bodyY + 12 * scale);
+    ctx.lineTo(13 * scale, bodyY + 12 * scale);
+    ctx.lineTo(18 * scale, groundY - 27 * scale);
+    ctx.lineTo(-18 * scale, groundY - 27 * scale);
+    ctx.closePath();
+  } else {
+    ctx.roundRect(
+      -16 * scale,
+      bodyY + 5 * scale,
+      32 * scale,
+      35 * scale,
+      4 * scale
+    );
+  }
 
   ctx.fill();
-
-  ctx.strokeStyle = "#25211b";
-  ctx.lineWidth = 3 * s;
   ctx.stroke();
 
   /* arms */
 
-  ctx.strokeStyle = "#25211b";
-  ctx.lineWidth = 5 * s;
-
-  const armA = -walk * 15 * speedMultiplier;
-  const armB = walk * 15 * speedMultiplier;
-
-  roughLine(ctx, -12 * s, -10 * s, -22 * s + armA, 8 * s, 1.2);
-  roughLine(ctx, 12 * s, -10 * s, 22 * s + armB, 8 * s, 1.2);
-
-  /* neck */
-
-  ctx.fillStyle = character.color;
-  ctx.fillRect(-5 * s, -24 * s, 10 * s, 10 * s);
-
-  /* head */
-
   ctx.beginPath();
-  ctx.arc(0, -36 * s, 16 * s, 0, Math.PI * 2);
-  ctx.fill();
 
-  ctx.strokeStyle = "#25211b";
-  ctx.lineWidth = 3 * s;
-  ctx.stroke();
+  if (walking) {
+    ctx.moveTo(-14 * scale, bodyY + 11 * scale);
+    ctx.lineTo(
+      -20 * scale,
+      bodyY + 27 * scale
+    );
 
-  /* hair */
-
-  ctx.fillStyle = character.hair;
-
-  if (gender === "female") {
-    ctx.beginPath();
-    ctx.arc(0, -42 * s, 17 * s, Math.PI, Math.PI * 2);
-    ctx.fill();
-
-    ctx.beginPath();
-    ctx.arc(-14 * s, -35 * s, 8 * s, 0, Math.PI * 2);
-    ctx.arc(14 * s, -35 * s, 8 * s, 0, Math.PI * 2);
-    ctx.fill();
+    ctx.moveTo(14 * scale, bodyY + 11 * scale);
+    ctx.lineTo(
+      20 * scale,
+      bodyY + 19 * scale
+    );
   } else {
-    ctx.beginPath();
-    ctx.arc(0, -45 * s, 16 * s, Math.PI, Math.PI * 2);
-    ctx.fill();
+    ctx.moveTo(-14 * scale, bodyY + 11 * scale);
+    ctx.lineTo(
+      -18 * scale,
+      bodyY + 31 * scale
+    );
+
+    ctx.moveTo(14 * scale, bodyY + 11 * scale);
+    ctx.lineTo(
+      18 * scale,
+      bodyY + 31 * scale
+    );
   }
 
-  drawFace(ctx, 0, -36 * s, s, expression, facing);
+  ctx.stroke();
 
-  /* talking gesture */
+  drawFace(
+    ctx,
+    0,
+    bodyY - 7 * scale,
+    scale,
+    hair,
+    female
+  );
 
-  if (state === "talk") {
-    ctx.strokeStyle = "#25211b";
-    ctx.lineWidth = 5 * s;
+  if (player) {
+    ctx.strokeStyle = "#211f1b";
+    ctx.lineWidth = Math.max(1, 1.5 * scale);
 
     ctx.beginPath();
-    ctx.moveTo(13 * s, -8 * s);
-    ctx.lineTo(28 * s, -18 * s);
+    ctx.moveTo(-10 * scale, bodyY + 13 * scale);
+    ctx.lineTo(10 * scale, bodyY + 13 * scale);
     ctx.stroke();
   }
 
   ctx.restore();
 }
 
-function drawBike(ctx, x, y, s, phase) {
+function drawBike(ctx, x, y, scale, direction = 1) {
   ctx.save();
 
   ctx.translate(x, y);
+  ctx.scale(direction, 1);
 
-  /* shadow */
-
-  ctx.fillStyle = "rgba(20,18,14,.25)";
-  ctx.beginPath();
-  ctx.ellipse(0, 30 * s, 65 * s, 7 * s, 0, 0, Math.PI * 2);
-  ctx.fill();
+  ctx.strokeStyle = "#211f1b";
+  ctx.lineWidth = Math.max(1.5, 3 * scale);
 
   /* wheels */
 
-  ctx.strokeStyle = "#201e19";
-  ctx.lineWidth = 4 * s;
-
-  [-42, 42].forEach((wheelX) => {
-    ctx.beginPath();
-    ctx.arc(wheelX * s, 0, 16 * s, 0, Math.PI * 2);
-    ctx.stroke();
-
-    ctx.beginPath();
-    ctx.arc(wheelX * s, 0, 4 * s, 0, Math.PI * 2);
-    ctx.stroke();
-
-    for (let i = 0; i < 8; i++) {
-      const a = i * Math.PI / 4 + phase * 0.04;
-
-      ctx.beginPath();
-      ctx.moveTo(wheelX * s, 0);
-      ctx.lineTo(
-        wheelX * s + Math.cos(a) * 14 * s,
-        Math.sin(a) * 14 * s
-      );
-      ctx.stroke();
-    }
-  });
-
-  /* RX frame */
-
-  ctx.strokeStyle = "#27231d";
-  ctx.lineWidth = 5 * s;
-
   ctx.beginPath();
-  ctx.moveTo(-42 * s, 0);
-  ctx.lineTo(-12 * s, -15 * s);
-  ctx.lineTo(20 * s, 0);
-  ctx.lineTo(-42 * s, 0);
-  ctx.lineTo(-5 * s, 0);
-  ctx.lineTo(10 * s, -22 * s);
+  ctx.arc(
+    -31 * scale,
+    0,
+    14 * scale,
+    0,
+    Math.PI * 2
+  );
+  ctx.arc(
+    31 * scale,
+    0,
+    14 * scale,
+    0,
+    Math.PI * 2
+  );
   ctx.stroke();
 
-  /* fuel tank */
-
-  ctx.fillStyle = "#555d48";
+  /* frame */
 
   ctx.beginPath();
-  ctx.moveTo(-10 * s, -20 * s);
-  ctx.quadraticCurveTo(5 * s, -31 * s, 24 * s, -19 * s);
-  ctx.lineTo(15 * s, -8 * s);
-  ctx.lineTo(-7 * s, -9 * s);
+  ctx.moveTo(-31 * scale, 0);
+  ctx.lineTo(-7 * scale, -14 * scale);
+
+  ctx.lineTo(18 * scale, 0);
+
+  ctx.lineTo(-31 * scale, 0);
+
+  ctx.moveTo(-7 * scale, -14 * scale);
+  ctx.lineTo(3 * scale, 0);
+
+  ctx.moveTo(18 * scale, 0);
+  ctx.lineTo(11 * scale, -17 * scale);
+
+  ctx.moveTo(11 * scale, -17 * scale);
+  ctx.lineTo(19 * scale, -19 * scale);
+
+  ctx.stroke();
+
+  /* tank */
+
+  ctx.fillStyle = "#516c68";
+
+  ctx.beginPath();
+  ctx.moveTo(-9 * scale, -18 * scale);
+  ctx.quadraticCurveTo(
+    2 * scale,
+    -24 * scale,
+    13 * scale,
+    -17 * scale
+  );
+  ctx.lineTo(9 * scale, -8 * scale);
+  ctx.lineTo(-7 * scale, -8 * scale);
   ctx.closePath();
 
   ctx.fill();
-  ctx.stroke();
-
-  /* handle */
-
-  ctx.beginPath();
-  ctx.moveTo(10 * s, -22 * s);
-  ctx.lineTo(29 * s, -29 * s);
-  ctx.lineTo(34 * s, -25 * s);
   ctx.stroke();
 
   /* seat */
 
-  ctx.fillStyle = "#292722";
-  roundedRect(ctx, -21 * s, -26 * s, 24 * s, 6 * s, 2);
-  ctx.fill();
-
-  /* rider */
-
-  ctx.strokeStyle = "#27231d";
-  ctx.lineWidth = 7 * s;
-
   ctx.beginPath();
-  ctx.moveTo(-3 * s, -30 * s);
-  ctx.lineTo(-1 * s, -50 * s);
-  ctx.lineTo(12 * s, -63 * s);
+  ctx.moveTo(-5 * scale, -25 * scale);
+  ctx.lineTo(10 * scale, -25 * scale);
   ctx.stroke();
 
-  ctx.fillStyle = "#6c6250";
+  /* headlight */
 
   ctx.beginPath();
-  ctx.arc(14 * s, -70 * s, 8 * s, 0, Math.PI * 2);
-  ctx.fill();
+  ctx.arc(
+    21 * scale,
+    -17 * scale,
+    4 * scale,
+    0,
+    Math.PI * 2
+  );
   ctx.stroke();
-
-  /* little motion lines */
-
-  ctx.globalAlpha = 0.5;
-  ctx.lineWidth = 2 * s;
-
-  for (let i = 0; i < 3; i++) {
-    ctx.beginPath();
-    ctx.moveTo((-70 - i * 9) * s, (-10 + i * 5) * s);
-    ctx.lineTo((-90 - i * 9) * s, (-10 + i * 5) * s);
-    ctx.stroke();
-  }
 
   ctx.restore();
 }
 
-function drawMaruti(ctx, x, y, s, phase) {
+function drawMaruti800(ctx, x, y, scale, direction = 1) {
   ctx.save();
 
   ctx.translate(x, y);
+  ctx.scale(direction, 1);
 
-  ctx.fillStyle = "rgba(20,18,14,.25)";
-  ctx.beginPath();
-  ctx.ellipse(0, 27 * s, 80 * s, 7 * s, 0, 0, Math.PI * 2);
-  ctx.fill();
+  ctx.strokeStyle = "#211f1b";
+  ctx.lineWidth = Math.max(1.5, 2.5 * scale);
 
-  /* body */
-
-  ctx.fillStyle = "#9c8060";
-  ctx.strokeStyle = "#28251f";
-  ctx.lineWidth = 4 * s;
-
-  roundedRect(ctx, -70 * s, -35 * s, 140 * s, 55 * s, 8 * s);
-  ctx.fill();
-  ctx.stroke();
-
-  /* roof */
+  ctx.fillStyle = "#eee7d0";
 
   ctx.beginPath();
-  ctx.moveTo(-43 * s, -35 * s);
-  ctx.lineTo(-27 * s, -61 * s);
-  ctx.lineTo(34 * s, -61 * s);
-  ctx.lineTo(53 * s, -35 * s);
+
+  ctx.moveTo(-52 * scale, 0);
+  ctx.lineTo(-47 * scale, -18 * scale);
+  ctx.lineTo(-30 * scale, -31 * scale);
+  ctx.lineTo(25 * scale, -31 * scale);
+  ctx.lineTo(45 * scale, -17 * scale);
+  ctx.lineTo(53 * scale, 0);
   ctx.closePath();
+
   ctx.fill();
   ctx.stroke();
 
   /* windows */
 
-  ctx.fillStyle = "#59605b";
+  ctx.fillStyle = "#8e9b98";
 
   ctx.beginPath();
-  ctx.moveTo(-23 * s, -54 * s);
-  ctx.lineTo(-5 * s, -54 * s);
-  ctx.lineTo(-5 * s, -39 * s);
-  ctx.lineTo(-31 * s, -39 * s);
+  ctx.moveTo(-27 * scale, -27 * scale);
+  ctx.lineTo(-6 * scale, -27 * scale);
+  ctx.lineTo(-6 * scale, -13 * scale);
+  ctx.lineTo(-36 * scale, -13 * scale);
   ctx.closePath();
+
   ctx.fill();
   ctx.stroke();
 
   ctx.beginPath();
-  ctx.moveTo(2 * s, -54 * s);
-  ctx.lineTo(29 * s, -54 * s);
-  ctx.lineTo(42 * s, -39 * s);
-  ctx.lineTo(2 * s, -39 * s);
+  ctx.moveTo(-1 * scale, -27 * scale);
+  ctx.lineTo(21 * scale, -27 * scale);
+  ctx.lineTo(37 * scale, -13 * scale);
+  ctx.lineTo(-1 * scale, -13 * scale);
   ctx.closePath();
+
   ctx.fill();
   ctx.stroke();
-
-  /* occupants */
-
-  ctx.fillStyle = "#a87860";
-
-  [-18, 19].forEach((p) => {
-    ctx.beginPath();
-    ctx.arc(p * s, -47 * s, 5 * s, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.stroke();
-
-    ctx.fillStyle = "#25221d";
-
-    ctx.beginPath();
-    ctx.arc(p * s, -50 * s, 6 * s, Math.PI, Math.PI * 2);
-    ctx.fill();
-
-    ctx.fillStyle = "#a87860";
-  });
 
   /* bumpers */
 
-  ctx.fillStyle = "#d5c7a3";
+  ctx.beginPath();
+  ctx.moveTo(-52 * scale, -1 * scale);
+  ctx.lineTo(-58 * scale, -1 * scale);
 
-  roundedRect(ctx, -76 * s, 8 * s, 12 * s, 7 * s, 2);
-  ctx.fill();
-  ctx.stroke();
+  ctx.moveTo(52 * scale, -1 * scale);
+  ctx.lineTo(58 * scale, -1 * scale);
 
-  roundedRect(ctx, 64 * s, 8 * s, 12 * s, 7 * s, 2);
-  ctx.fill();
   ctx.stroke();
 
   /* wheels */
 
-  [-45, 45].forEach((wheelX) => {
-    ctx.fillStyle = "#25231f";
-    ctx.beginPath();
-    ctx.arc(wheelX * s, 20 * s, 13 * s, 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.fillStyle = "#a89b7d";
-    ctx.beginPath();
-    ctx.arc(wheelX * s, 20 * s, 5 * s, 0, Math.PI * 2);
-    ctx.fill();
-  });
-
-  /* headlights */
-
-  ctx.fillStyle = "#e4d79d";
+  ctx.fillStyle = "#222";
 
   ctx.beginPath();
-  ctx.arc(67 * s, -7 * s, 5 * s, 0, Math.PI * 2);
+  ctx.arc(
+    -32 * scale,
+    2 * scale,
+    9 * scale,
+    0,
+    Math.PI * 2
+  );
+  ctx.arc(
+    33 * scale,
+    2 * scale,
+    9 * scale,
+    0,
+    Math.PI * 2
+  );
+  ctx.fill();
+
+  ctx.fillStyle = "#c9c2aa";
+
+  ctx.beginPath();
+  ctx.arc(
+    -32 * scale,
+    2 * scale,
+    4 * scale,
+    0,
+    Math.PI * 2
+  );
+  ctx.arc(
+    33 * scale,
+    2 * scale,
+    4 * scale,
+    0,
+    Math.PI * 2
+  );
+  ctx.fill();
+
+  ctx.restore();
+}
+
+function drawSpencer(ctx, width, height) {
+  const ground = height * 0.68;
+
+  /* main building */
+
+  ctx.fillStyle = "#b8aa87";
+  ctx.strokeStyle = "#29261f";
+  ctx.lineWidth = 3;
+
+  ctx.beginPath();
+
+  ctx.moveTo(width * 0.05, ground);
+  ctx.lineTo(width * 0.05, height * 0.23);
+  ctx.lineTo(width * 0.16, height * 0.14);
+  ctx.lineTo(width * 0.84, height * 0.14);
+  ctx.lineTo(width * 0.95, height * 0.23);
+  ctx.lineTo(width * 0.95, ground);
+  ctx.closePath();
+
   ctx.fill();
   ctx.stroke();
 
-  /* motion */
+  /* roof */
 
-  ctx.globalAlpha = 0.45;
-  ctx.lineWidth = 2 * s;
+  ctx.fillStyle = "#8f8062";
 
-  for (let i = 0; i < 3; i++) {
+  ctx.beginPath();
+  ctx.moveTo(width * 0.03, height * 0.24);
+  ctx.lineTo(width * 0.16, height * 0.12);
+  ctx.lineTo(width * 0.84, height * 0.12);
+  ctx.lineTo(width * 0.97, height * 0.24);
+  ctx.closePath();
+
+  ctx.fill();
+  ctx.stroke();
+
+  /* old Spencer Plaza sign */
+
+  ctx.fillStyle = "#e8dfbd";
+
+  ctx.fillRect(
+    width * 0.34,
+    height * 0.18,
+    width * 0.32,
+    height * 0.075
+  );
+
+  ctx.strokeRect(
+    width * 0.34,
+    height * 0.18,
+    width * 0.32,
+    height * 0.075
+  );
+
+  ctx.fillStyle = "#29261f";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+
+  ctx.font = `900 ${Math.max(
+    14,
+    width * 0.022
+  )}px Georgia`;
+
+  ctx.fillText(
+    "SPENCER PLAZA",
+    width * 0.5,
+    height * 0.217
+  );
+
+  /* windows */
+
+  for (let row = 0; row < 2; row += 1) {
+    for (let col = 0; col < 9; col += 1) {
+      const x =
+        width * 0.09 +
+        col * width * 0.095;
+
+      const y =
+        height * 0.32 +
+        row * height * 0.13;
+
+      ctx.fillStyle =
+        col % 2 === 0
+          ? "#78898a"
+          : "#69797a";
+
+      ctx.fillRect(
+        x,
+        y,
+        width * 0.055,
+        height * 0.075
+      );
+
+      ctx.strokeRect(
+        x,
+        y,
+        width * 0.055,
+        height * 0.075
+      );
+    }
+  }
+
+  /* shop fronts */
+
+  const shopY = ground - 8;
+
+  for (let i = 0; i < 7; i += 1) {
+    const x =
+      width * 0.075 +
+      i * width * 0.12;
+
+    ctx.fillStyle =
+      i % 2 === 0
+        ? "#6e6654"
+        : "#81755d";
+
+    ctx.fillRect(
+      x,
+      shopY - height * 0.09,
+      width * 0.095,
+      height * 0.09
+    );
+
+    ctx.strokeRect(
+      x,
+      shopY - height * 0.09,
+      width * 0.095,
+      height * 0.09
+    );
+
+    ctx.fillStyle = "#ddd2ac";
+
+    ctx.font = `700 ${Math.max(
+      8,
+      width * 0.009
+    )}px monospace`;
+
+    ctx.textAlign = "center";
+
+    const names = [
+      "MUSIC",
+      "BOOKS",
+      "VIDEO",
+      "JEANS",
+      "CAFE",
+      "GAMES",
+      "TRAVEL",
+    ];
+
+    ctx.fillText(
+      names[i],
+      x + width * 0.047,
+      shopY - height * 0.055
+    );
+  }
+}
+
+function drawSky(ctx, width, height) {
+  ctx.fillStyle = "#c7d0c4";
+  ctx.fillRect(0, 0, width, height);
+
+  /* faded clouds */
+
+  ctx.fillStyle = "rgba(245,239,210,0.55)";
+
+  const clouds = [
+    [0.16, 0.18, 0.13],
+    [0.72, 0.13, 0.16],
+    [0.88, 0.31, 0.1],
+  ];
+
+  clouds.forEach(([x, y, size]) => {
     ctx.beginPath();
-    ctx.moveTo((-95 - i * 10) * s, (-10 + i * 5) * s);
-    ctx.lineTo((-120 - i * 10) * s, (-10 + i * 5) * s);
+
+    ctx.ellipse(
+      width * x,
+      height * y,
+      width * size,
+      height * 0.035,
+      0,
+      0,
+      Math.PI * 2
+    );
+
+    ctx.fill();
+  });
+
+  /* paper sun */
+
+  ctx.fillStyle = "#d9c68a";
+
+  ctx.beginPath();
+
+  ctx.arc(
+    width * 0.83,
+    height * 0.15,
+    Math.min(width, height) * 0.06,
+    0,
+    Math.PI * 2
+  );
+
+  ctx.fill();
+}
+
+function drawRoad(ctx, width, height) {
+  const roadTop = height * 0.68;
+
+  ctx.fillStyle = "#78746b";
+
+  ctx.beginPath();
+
+  ctx.moveTo(0, roadTop);
+  ctx.lineTo(width, roadTop);
+  ctx.lineTo(width, height);
+  ctx.lineTo(0, height);
+  ctx.closePath();
+
+  ctx.fill();
+
+  /* road edge */
+
+  ctx.strokeStyle = "#302e29";
+  ctx.lineWidth = 3;
+
+  ctx.beginPath();
+  ctx.moveTo(0, roadTop);
+  ctx.lineTo(width, roadTop);
+  ctx.stroke();
+
+  /* road markings */
+
+  ctx.strokeStyle = "#c6bd98";
+  ctx.lineWidth = 4;
+  ctx.setLineDash([28, 22]);
+
+  ctx.beginPath();
+  ctx.moveTo(0, height * 0.86);
+  ctx.lineTo(width, height * 0.86);
+  ctx.stroke();
+
+  ctx.setLineDash([]);
+
+  /* sidewalk */
+
+  ctx.fillStyle = "#b7aa88";
+
+  ctx.fillRect(
+    0,
+    roadTop - 15,
+    width,
+    15
+  );
+
+  ctx.strokeStyle = "#302e29";
+
+  ctx.beginPath();
+  ctx.moveTo(0, roadTop - 15);
+  ctx.lineTo(width, roadTop - 15);
+  ctx.stroke();
+}
+
+function drawTrees(ctx, width, height) {
+  const positions = [
+    [0.025, 0.48, 1.2],
+    [0.16, 0.53, 0.85],
+    [0.94, 0.49, 1.15],
+    [0.81, 0.52, 0.75],
+  ];
+
+  positions.forEach(([x, y, scale]) => {
+    const tx = width * x;
+    const ty = height * y;
+
+    ctx.strokeStyle = "#40382d";
+    ctx.lineWidth = 5 * scale;
+
+    ctx.beginPath();
+    ctx.moveTo(tx, ty + 70 * scale);
+    ctx.lineTo(tx, ty);
     ctx.stroke();
+
+    ctx.fillStyle = "#63705b";
+
+    ctx.beginPath();
+    ctx.arc(
+      tx - 20 * scale,
+      ty,
+      27 * scale,
+      0,
+      Math.PI * 2
+    );
+
+    ctx.arc(
+      tx + 10 * scale,
+      ty - 13 * scale,
+      32 * scale,
+      0,
+      Math.PI * 2
+    );
+
+    ctx.arc(
+      tx + 35 * scale,
+      ty + 4 * scale,
+      24 * scale,
+      0,
+      Math.PI * 2
+    );
+
+    ctx.fill();
+
+    ctx.strokeStyle = "#302e29";
+    ctx.lineWidth = 2;
+
+    ctx.beginPath();
+    ctx.arc(
+      tx,
+      ty,
+      42 * scale,
+      0,
+      Math.PI * 2
+    );
+    ctx.stroke();
+  });
+}
+
+function drawBench(ctx, x, y, scale = 1) {
+  ctx.save();
+
+  ctx.strokeStyle = "#302a23";
+  ctx.fillStyle = "#826a4b";
+  ctx.lineWidth = 3 * scale;
+
+  ctx.fillRect(
+    x - 45 * scale,
+    y - 12 * scale,
+    90 * scale,
+    12 * scale
+  );
+
+  ctx.strokeRect(
+    x - 45 * scale,
+    y - 12 * scale,
+    90 * scale,
+    12 * scale
+  );
+
+  ctx.fillRect(
+    x - 42 * scale,
+    y - 30 * scale,
+    84 * scale,
+    10 * scale
+  );
+
+  ctx.strokeRect(
+    x - 42 * scale,
+    y - 30 * scale,
+    84 * scale,
+    10 * scale
+  );
+
+  ctx.beginPath();
+
+  ctx.moveTo(
+    x - 33 * scale,
+    y
+  );
+
+  ctx.lineTo(
+    x - 29 * scale,
+    y + 20 * scale
+  );
+
+  ctx.moveTo(
+    x + 33 * scale,
+    y
+  );
+
+  ctx.lineTo(
+    x + 29 * scale,
+    y + 20 * scale
+  );
+
+  ctx.stroke();
+
+  ctx.restore();
+}
+
+function drawFlyer(ctx, width, height, visible) {
+  if (!visible) return;
+
+  const x = width * 0.7;
+  const y = height * 0.45;
+
+  ctx.save();
+
+  ctx.translate(x, y);
+  ctx.rotate(-0.035);
+
+  ctx.fillStyle = "#f0dfad";
+  ctx.strokeStyle = "#28251f";
+  ctx.lineWidth = 3;
+
+  ctx.fillRect(
+    -105,
+    -72,
+    210,
+    145
+  );
+
+  ctx.strokeRect(
+    -105,
+    -72,
+    210,
+    145
+  );
+
+  /* torn edges */
+
+  ctx.strokeStyle = "#6b604a";
+  ctx.lineWidth = 1;
+
+  for (let i = -95; i < 95; i += 14) {
+    ctx.beginPath();
+    ctx.moveTo(i, 70);
+    ctx.lineTo(i + 6, 76);
+    ctx.stroke();
+  }
+
+  ctx.fillStyle = "#26231e";
+
+  ctx.textAlign = "center";
+
+  ctx.font = "900 17px Georgia";
+
+  ctx.fillText(
+    "LOOKING FOR",
+    0,
+    -37
+  );
+
+  ctx.font = "900 24px Georgia";
+
+  ctx.fillText(
+    "SOMEONE?",
+    0,
+    -9
+  );
+
+  ctx.font = "italic 13px Georgia";
+
+  ctx.fillText(
+    "Maybe they're online.",
+    0,
+    20
+  );
+
+  ctx.font = "700 10px monospace";
+
+  ctx.fillText(
+    "NET CAFE → FIRST FLOOR",
+    0,
+    47
+  );
+
+  ctx.restore();
+}
+
+function drawCafeEntrance(ctx, width, height) {
+  const x = width * 0.5;
+  const y = height * 0.53;
+
+  ctx.save();
+
+  ctx.fillStyle = "#34312b";
+  ctx.strokeStyle = "#1f1d19";
+  ctx.lineWidth = 3;
+
+  ctx.fillRect(
+    x - 82,
+    y - 60,
+    164,
+    105
+  );
+
+  ctx.strokeRect(
+    x - 82,
+    y - 60,
+    164,
+    105
+  );
+
+  ctx.fillStyle = "#d8c89d";
+
+  ctx.fillRect(
+    x - 67,
+    y - 45,
+    134,
+    27
+  );
+
+  ctx.strokeRect(
+    x - 67,
+    y - 45,
+    134,
+    27
+  );
+
+  ctx.fillStyle = "#29261f";
+
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+
+  ctx.font = "900 15px Georgia";
+
+  ctx.fillText(
+    "NET CAFE",
+    x,
+    y - 31
+  );
+
+  /* door */
+
+  ctx.fillStyle = "#626967";
+
+  ctx.fillRect(
+    x - 35,
+    y - 5,
+    70,
+    50
+  );
+
+  ctx.strokeRect(
+    x - 35,
+    y - 5,
+    70,
+    50
+  );
+
+  /* monitors visible through glass */
+
+  ctx.fillStyle = "#aeb6a6";
+
+  for (let i = -2; i <= 2; i += 1) {
+    ctx.fillRect(
+      x + i * 24 - 6,
+      y + 8,
+      12,
+      9
+    );
   }
 
   ctx.restore();
 }
 
-function drawBubble(ctx, text, x, y, scale = 1, type = "normal") {
+function drawSpeechBubble(
+  ctx,
+  width,
+  height,
+  message,
+  x,
+  y
+) {
+  if (!message) return;
+
+  const maxWidth = Math.min(
+    250,
+    width * 0.34
+  );
+
   ctx.save();
 
-  const fontSize = Math.max(12, 14 * scale);
-  ctx.font = `bold ${fontSize}px monospace`;
+  ctx.font = "700 12px monospace";
 
-  const maxWidth = 190 * scale;
-
-  const words = text.split(" ");
+  const words = message.split(" ");
   const lines = [];
 
-  let current = "";
+  let line = "";
 
   words.forEach((word) => {
-    const test = current ? `${current} ${word}` : word;
+    const test =
+      line.length > 0
+        ? `${line} ${word}`
+        : word;
 
-    if (ctx.measureText(test).width > maxWidth && current) {
-      lines.push(current);
-      current = word;
+    if (
+      ctx.measureText(test).width >
+      maxWidth
+    ) {
+      lines.push(line);
+      line = word;
     } else {
-      current = test;
+      line = test;
     }
   });
 
-  if (current) lines.push(current);
+  if (line) lines.push(line);
 
-  const width = Math.min(
-    maxWidth + 26 * scale,
-    Math.max(
-      100 * scale,
-      Math.max(...lines.map((l) => ctx.measureText(l).width)) + 26 * scale
-    )
+  const lineHeight = 17;
+  const padding = 12;
+
+  const bubbleWidth =
+    Math.min(
+      maxWidth,
+      Math.max(
+        120,
+        Math.max(
+          ...lines.map((l) =>
+            ctx.measureText(l).width
+          )
+        ) + padding * 2
+      )
+    );
+
+  const bubbleHeight =
+    lines.length * lineHeight +
+    padding * 2;
+
+  const bx = clamp(
+    x,
+    bubbleWidth / 2 + 8,
+    width - bubbleWidth / 2 - 8
   );
 
-  const lineHeight = fontSize * 1.25;
-  const height = lines.length * lineHeight + 22 * scale;
+  const by = clamp(
+    y,
+    bubbleHeight / 2 + 8,
+    height - bubbleHeight / 2 - 8
+  );
 
-  let bx = x - width / 2;
-  let by = y - height - 35 * scale;
-
-  bx = clamp(bx, 8, ctx.canvas.width - width - 8);
-  by = Math.max(8, by);
-
-  ctx.fillStyle = type === "thought" ? "#e6dcc0" : "#f0e6c5";
-  ctx.strokeStyle = "#26231d";
-  ctx.lineWidth = 3 * scale;
-
-  roundedRect(ctx, bx, by, width, height, 10 * scale);
-  ctx.fill();
-  ctx.stroke();
+  ctx.fillStyle = "#f3e6bd";
+  ctx.strokeStyle = "#29261f";
+  ctx.lineWidth = 2;
 
   ctx.beginPath();
-  ctx.moveTo(x - 10 * scale, by + height);
-  ctx.lineTo(x, by + height + 13 * scale);
-  ctx.lineTo(x + 9 * scale, by + height);
-  ctx.closePath();
+
+  ctx.roundRect(
+    bx - bubbleWidth / 2,
+    by - bubbleHeight / 2,
+    bubbleWidth,
+    bubbleHeight,
+    7
+  );
+
   ctx.fill();
   ctx.stroke();
 
-  ctx.fillStyle = "#201e19";
-  ctx.textAlign = "center";
-  ctx.textBaseline = "top";
+  /* tail */
 
-  lines.forEach((line, i) => {
+  ctx.beginPath();
+
+  ctx.moveTo(
+    bx - 10,
+    by + bubbleHeight / 2
+  );
+
+  ctx.lineTo(
+    bx - 20,
+    by + bubbleHeight / 2 + 14
+  );
+
+  ctx.lineTo(
+    bx + 5,
+    by + bubbleHeight / 2
+  );
+
+  ctx.fill();
+  ctx.stroke();
+
+  ctx.fillStyle = "#27241e";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+
+  lines.forEach((text, index) => {
     ctx.fillText(
-      line,
-      bx + width / 2,
-      by + 10 * scale + i * lineHeight
+      text,
+      bx,
+      by -
+        ((lines.length - 1) *
+          lineHeight) /
+          2 +
+        index * lineHeight
     );
   });
 
   ctx.restore();
 }
 
+function drawPaperTexture(ctx, width, height) {
+  ctx.save();
+
+  ctx.globalAlpha = 0.06;
+
+  for (let i = 0; i < 900; i += 1) {
+    const x = Math.random() * width;
+    const y = Math.random() * height;
+
+    ctx.fillStyle =
+      i % 2 === 0
+        ? "#171612"
+        : "#fff8df";
+
+    ctx.fillRect(
+      x,
+      y,
+      1,
+      1
+    );
+  }
+
+  ctx.restore();
+}
+
 export default function ComicWorld({
-  playerGender = "male",
+  playerGender = "guy",
   flyerVisible = false,
   arrival = 0,
   onEnterCafe,
-  onNotice
+  onNotice,
 }) {
   const canvasRef = useRef(null);
+  const wrapperRef = useRef(null);
+  const animationRef = useRef(null);
 
-  const worldRef = useRef({
-    player: {
-      x: 0.5,
-      y: 0.72,
-      targetX: 0.5,
-      targetY: 0.72,
-      facing: 1
-    },
+  const [selectedNpc, setSelectedNpc] =
+    useState(null);
 
-    npc: NPCS.map((npc, index) => ({
-      ...npc,
-      target: WAYPOINTS[index % WAYPOINTS.length],
-      state: "walk",
-      expression: index % 3 === 0 ? "happy" : "neutral",
-      bubble: "",
-      bubbleUntil: 0,
-      dialogueIndex: 0,
-      pauseUntil: 0
-    })),
+  const [hint, setHint] = useState(
+    "MOVE AROUND · TAP / CLICK TO WALK"
+  );
 
-    bike: {
-      x: -0.15,
-      direction: 1
-    },
+  const [cafeReady, setCafeReady] =
+    useState(false);
 
-    car: {
-      x: 1.15,
-      direction: -1
-    },
-
-    lastTime: 0,
-    noticeShown: false,
-    activeBubble: null
+  const playerRef = useRef({
+    x: 0.5,
+    targetX: 0.5,
+    direction: 1,
+    walking: false,
   });
 
+  const npcRef = useRef(
+    NPCS.map((npc) => ({
+      ...npc,
+      currentX: npc.x,
+      direction: npc.direction,
+      timer: Math.random() * 100,
+    }))
+  );
+
+  const carRef = useRef({
+    x: -0.25,
+    direction: 1,
+  });
+
+  const bikeRef = useRef({
+    x: 1.25,
+    direction: -1,
+  });
+
+  const startedAtRef = useRef(
+    typeof performance !== "undefined"
+      ? performance.now()
+      : 0
+  );
+
   useEffect(() => {
+    if (!canvasRef.current) return;
+
     const canvas = canvasRef.current;
-
-    if (!canvas) return;
-
     const ctx = canvas.getContext("2d");
 
-    let animationFrame;
-    let stopped = false;
+    if (!ctx) return;
 
-    function resize() {
-      const rect = canvas.getBoundingClientRect();
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    let width = 0;
+    let height = 0;
+    let dpr = 1;
 
-      canvas.width = Math.floor(rect.width * dpr);
-      canvas.height = Math.floor(rect.height * dpr);
+    const resize = () => {
+      const rect =
+        canvas.getBoundingClientRect();
 
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    }
+      width = Math.max(
+        320,
+        rect.width
+      );
+
+      height = Math.max(
+        390,
+        rect.height
+      );
+
+      dpr =
+        typeof window !== "undefined"
+          ? Math.min(
+              window.devicePixelRatio || 1,
+              2
+            )
+          : 1;
+
+      canvas.width =
+        Math.floor(width * dpr);
+
+      canvas.height =
+        Math.floor(height * dpr);
+
+      ctx.setTransform(
+        dpr,
+        0,
+        0,
+        dpr,
+        0,
+        0
+      );
+    };
 
     resize();
 
-    window.addEventListener("resize", resize);
+    const resizeObserver =
+      typeof ResizeObserver !==
+      "undefined"
+        ? new ResizeObserver(resize)
+        : null;
 
-    function update(dt, time) {
-      const world = worldRef.current;
-
-      /* player */
-
-      const p = world.player;
-
-      const dx = p.targetX - p.x;
-      const dy = p.targetY - p.y;
-
-      const distance = Math.sqrt(dx * dx + dy * dy);
-
-      if (distance > 0.003) {
-        const speed = 0.00032 * dt;
-
-        p.x += (dx / distance) * speed;
-        p.y += (dy / distance) * speed;
-
-        if (dx !== 0) {
-          p.facing = dx > 0 ? 1 : -1;
-        }
-      }
-
-      p.x = clamp(p.x, 0.04, 0.96);
-      p.y = clamp(p.y, 0.58, 0.82);
-
-      /* NPCs */
-
-      world.npc.forEach((npc, index) => {
-        if (time < npc.pauseUntil) {
-          npc.state = "talk";
-          return;
-        }
-
-        const tx = npc.target[0];
-        const ty = npc.target[1];
-
-        const dx = tx - npc.x;
-        const dy = ty - npc.y;
-
-        const dist = Math.sqrt(dx * dx + dy * dy);
-
-        if (dist < 0.01) {
-          npc.target =
-            WAYPOINTS[
-              Math.floor(
-                (Math.abs(Math.sin(time / 1000 + index)) *
-                  WAYPOINTS.length)
-              ) % WAYPOINTS.length
-            ];
-
-          npc.pauseUntil =
-            time +
-            1800 +
-            Math.floor(
-              Math.abs(Math.sin(time / 1300 + index)) * 3000
-            );
-
-          npc.state = "talk";
-
-          if (Math.random() < 0.8) {
-            npc.bubble =
-              npc.dialogue[
-                npc.dialogueIndex % npc.dialogue.length
-              ];
-
-            npc.dialogueIndex++;
-
-            npc.bubbleUntil = time + 3500;
-          }
-        } else {
-          const speed = npc.speed * dt;
-
-          npc.x += (dx / dist) * speed;
-          npc.y += (dy / dist) * speed;
-
-          npc.state = "walk";
-
-          if (dx !== 0) {
-            npc.facing = dx > 0 ? 1 : -1;
-          }
-        }
-      });
-
-      /* bike */
-
-      world.bike.x += 0.00013 * dt;
-
-      if (world.bike.x > 1.2) {
-        world.bike.x = -0.2;
-      }
-
-      /* car */
-
-      world.car.x -= 0.00009 * dt;
-
-      if (world.car.x < -0.2) {
-        world.car.x = 1.2;
-      }
-
-      /* delayed world event */
-
-      if (
-        arrival >= 30 &&
-        !world.noticeShown
-      ) {
-        world.noticeShown = true;
-
-        if (onNotice) {
-          onNotice("Someone nearby is talking about the net cafe...");
-        }
-      }
+    if (resizeObserver) {
+      resizeObserver.observe(canvas);
     }
 
-    function draw(time) {
-      const rect = canvas.getBoundingClientRect();
-      const w = rect.width;
-      const h = rect.height;
+    const draw = () => {
+      const now =
+        typeof performance !== "undefined"
+          ? performance.now()
+          : Date.now();
 
-      ctx.clearRect(0, 0, w, h);
+      const elapsed =
+        (now - startedAtRef.current) /
+        1000;
 
-      drawSky(ctx, w, h);
-      drawSpencer(ctx, w, h);
-      drawRoad(ctx, w, h);
+      ctx.clearRect(
+        0,
+        0,
+        width,
+        height
+      );
 
-      /* foreground plants */
+      /* BACKGROUND */
 
-      drawPlant(ctx, w * 0.055, h * 0.78, 0.8);
-      drawPlant(ctx, w * 0.93, h * 0.78, 0.7);
-
-      drawBench(ctx, w * 0.12, h * 0.76, 0.8);
-
-      /* cafe entrance */
-
-      ctx.fillStyle = "#3b392f";
-      ctx.strokeStyle = "#201e19";
-      ctx.lineWidth = 4;
-
-      roundedRect(
+      drawSky(
         ctx,
-        w * 0.43,
-        h * 0.45,
-        w * 0.14,
-        h * 0.22,
-        4
+        width,
+        height
       );
 
-      ctx.fill();
-      ctx.stroke();
-
-      ctx.fillStyle = "#ded2a8";
-      ctx.font = `bold ${Math.max(11, w * 0.017)}px monospace`;
-      ctx.textAlign = "center";
-      ctx.fillText(
-        "NET CAFE",
-        w * 0.5,
-        h * 0.49
+      drawSpencer(
+        ctx,
+        width,
+        height
       );
 
-      /* vehicles */
+      drawTrees(
+        ctx,
+        width,
+        height
+      );
 
-      const bikeX =
-        worldRef.current.bike.x * w;
+      drawRoad(
+        ctx,
+        width,
+        height
+      );
+
+      drawCafeEntrance(
+        ctx,
+        width,
+        height
+      );
+
+      /* BENCH */
+
+      drawBench(
+        ctx,
+        width * 0.24,
+        height * 0.66,
+        0.8
+      );
+
+      /* MOVING CAR */
+
+      carRef.current.x +=
+        0.00018 *
+        carRef.current.direction;
+
+      if (
+        carRef.current.x > 1.3
+      ) {
+        carRef.current.x = -0.3;
+      }
+
+      if (
+        carRef.current.x < -0.3
+      ) {
+        carRef.current.x = 1.3;
+      }
+
+      drawMaruti800(
+        ctx,
+        carRef.current.x * width,
+        height * 0.69,
+        Math.max(
+          0.55,
+          width / 1100
+        ),
+        carRef.current.direction
+      );
+
+      /* MOVING BIKE */
+
+      bikeRef.current.x +=
+        0.00022 *
+        bikeRef.current.direction;
+
+      if (
+        bikeRef.current.x < -0.3
+      ) {
+        bikeRef.current.x = 1.3;
+      }
+
+      if (
+        bikeRef.current.x > 1.3
+      ) {
+        bikeRef.current.x = -0.3;
+      }
 
       drawBike(
         ctx,
-        bikeX,
-        h * 0.7,
-        Math.max(0.55, Math.min(1, w / 850)),
-        time / 30
+        bikeRef.current.x * width,
+        height * 0.79,
+        Math.max(
+          0.65,
+          width / 1100
+        ),
+        bikeRef.current.direction
       );
 
-      const carX =
-        worldRef.current.car.x * w;
+      /* STATIC PEOPLE */
 
-      drawMaruti(
-        ctx,
-        carX,
-        h * 0.77,
-        Math.max(0.5, Math.min(0.85, w / 900)),
-        time / 30
-      );
-
-      /* NPCs */
-
-      worldRef.current.npc.forEach((npc, index) => {
-        const x = npc.x * w;
-        const y = npc.y * h;
-
-        const scale = Math.max(
-          0.55,
-          Math.min(0.9, w / 1000)
-        );
-
-        const phase =
-          time / 130 +
-          index * 2.2;
-
+      PEOPLE.forEach((person) => {
         drawCharacter(
           ctx,
-          x,
-          y,
-          scale,
-          npc,
-          npc.state,
-          npc.expression,
-          npc.facing || 1,
-          phase,
-          index % 2 ? "female" : "male"
+          person.x * width,
+          height *
+            (person.y - 0.02),
+          person.scale *
+            Math.max(
+              0.72,
+              width / 1000
+            ),
+          {
+            shirt: person.shirt,
+            pants: person.pants,
+            hair: person.hair,
+            female:
+              person.gender ===
+              "female",
+            walking: false,
+            direction: 1,
+          }
         );
-
-        if (
-          npc.bubble &&
-          time < npc.bubbleUntil
-        ) {
-          drawBubble(
-            ctx,
-            npc.bubble,
-            x,
-            y - 45 * scale,
-            scale
-          );
-        }
       });
 
-      /* player */
+      /* NPCS */
 
-      const p = worldRef.current.player;
+      npcRef.current.forEach(
+        (npc) => {
+          npc.timer += 0.016;
 
-      const moving =
-        Math.abs(p.targetX - p.x) > 0.003 ||
-        Math.abs(p.targetY - p.y) > 0.003;
+          if (
+            Math.sin(npc.timer) >
+            0.997
+          ) {
+            npc.direction *= -1;
+          }
+
+          npc.currentX +=
+            0.000012 *
+            npc.speed *
+            npc.direction;
+
+          if (
+            npc.currentX < 0.08
+          ) {
+            npc.currentX = 0.08;
+            npc.direction = 1;
+          }
+
+          if (
+            npc.currentX > 0.92
+          ) {
+            npc.currentX = 0.92;
+            npc.direction = -1;
+          }
+
+          const walking =
+            Math.abs(
+              Math.sin(
+                npc.timer * 1.2
+              )
+            ) > 0.25;
+
+          drawCharacter(
+            ctx,
+            npc.currentX * width,
+            height *
+              (npc.y - 0.02),
+            Math.max(
+              0.72,
+              width / 1050
+            ),
+            {
+              shirt: npc.shirt,
+              pants: npc.pants,
+              hair: npc.hair,
+              female:
+                npc.id === 2 ||
+                npc.id === 4,
+              walking,
+              direction:
+                npc.direction,
+            }
+          );
+        }
+      );
+
+      /* PLAYER */
+
+      const player =
+        playerRef.current;
+
+      const difference =
+        player.targetX -
+        player.x;
+
+      if (
+        Math.abs(difference) >
+        0.002
+      ) {
+        player.x +=
+          difference * 0.055;
+
+        player.walking = true;
+
+        player.direction =
+          difference > 0
+            ? 1
+            : -1;
+      } else {
+        player.x =
+          player.targetX;
+
+        player.walking = false;
+      }
+
+      const playerScale =
+        Math.max(
+          0.8,
+          Math.min(
+            1.05,
+            width / 850
+          )
+        );
 
       drawCharacter(
         ctx,
-        p.x * w,
-        p.y * h,
-        Math.max(0.65, Math.min(1, w / 900)),
+        player.x * width,
+        height * 0.83,
+        playerScale,
         {
-          color: playerGender === "female" ? "#b27c6e" : "#92715b",
-          hair: "#171512",
           shirt:
-            playerGender === "female"
-              ? "#9b6570"
-              : "#586653"
-        },
-        moving ? "walk" : "idle",
-        "happy",
-        p.facing,
-        time / 120,
-        playerGender
+            playerGender === "girl"
+              ? "#a65a5c"
+              : "#4e6870",
+          pants: "#25262a",
+          hair: "#151515",
+          female:
+            playerGender ===
+            "girl",
+          walking:
+            player.walking,
+          direction:
+            player.direction,
+          player: true,
+        }
       );
 
-      /* arrival labels */
+      /* FLYER */
 
-      if (arrival < 10) {
-        ctx.fillStyle = "#27241d";
-        ctx.font = `bold ${Math.max(
-          12,
-          w * 0.018
-        )}px monospace`;
+      drawFlyer(
+        ctx,
+        width,
+        height,
+        flyerVisible
+      );
 
-        ctx.textAlign = "left";
+      /* SPEECH BUBBLE */
 
-        ctx.fillText(
-          "SPENCER PLAZA • CHENNAI • 2001",
-          18,
-          h - 20
-        );
+      if (selectedNpc) {
+        const npc =
+          npcRef.current.find(
+            (item) =>
+              item.id ===
+              selectedNpc
+          );
+
+        if (npc) {
+          drawSpeechBubble(
+            ctx,
+            width,
+            height,
+            npc.dialogue,
+            npc.currentX *
+              width,
+            height *
+              (npc.y - 0.22)
+          );
+        }
       }
 
-      /* flyer */
+      /* ARRIVAL LABEL */
 
-      if (flyerVisible) {
-        const fx = w * 0.68;
-        const fy = h * 0.46;
-
+      if (arrival < 8) {
         ctx.save();
 
-        ctx.translate(fx, fy);
-        ctx.rotate(-0.035);
-
-        ctx.fillStyle = "#eee2b8";
-        ctx.strokeStyle = "#29261f";
-        ctx.lineWidth = 3;
-
-        ctx.shadowColor = "rgba(0,0,0,.25)";
-        ctx.shadowBlur = 7;
-
-        roundedRect(
-          ctx,
-          -75,
-          -55,
-          150,
-          110,
-          3
+        ctx.globalAlpha = clamp(
+          1 - arrival / 8,
+          0,
+          1
         );
 
-        ctx.fill();
-        ctx.stroke();
+        ctx.fillStyle =
+          "rgba(35,32,26,0.88)";
 
-        ctx.shadowBlur = 0;
+        ctx.strokeStyle =
+          "#eee2b8";
 
-        ctx.fillStyle = "#302c23";
-        ctx.textAlign = "center";
+        ctx.lineWidth = 2;
 
-        ctx.font = "bold 12px monospace";
+        ctx.font =
+          "900 14px Georgia";
+
+        ctx.textAlign =
+          "center";
+
+        ctx.textBaseline =
+          "middle";
+
         ctx.fillText(
-          "LOOKING FOR",
-          0,
-          -25
+          "CHENNAI · SPENCER PLAZA · 2001",
+          width / 2,
+          height * 0.09
         );
 
-        ctx.font = "bold 14px monospace";
-        ctx.fillText(
-          "SOMEONE?",
-          0,
-          -5
-        );
-
-        ctx.font = "11px monospace";
-        ctx.fillText(
-          "Maybe they're",
-          0,
-          18
-        );
+        ctx.font =
+          "italic 11px Georgia";
 
         ctx.fillText(
-          "online.",
-          0,
-          34
-        );
-
-        ctx.font = "9px monospace";
-        ctx.fillText(
-          "→ NET CAFE",
-          0,
-          49
+          "Somewhere between yesterday and tomorrow.",
+          width / 2,
+          height * 0.125
         );
 
         ctx.restore();
       }
 
-      /* paper effect */
+      /* COMIC FRAME */
 
-      drawPaperTexture(ctx, w, h, time);
+      ctx.save();
 
-      /* comic frame */
+      ctx.strokeStyle =
+        "rgba(35,31,24,0.45)";
 
-      ctx.strokeStyle = "#211f1a";
-      ctx.lineWidth = 5;
-      ctx.strokeRect(3, 3, w - 6, h - 6);
-    }
+      ctx.lineWidth = 2;
 
-    function frame(time) {
-      if (stopped) return;
-
-      const world = worldRef.current;
-
-      if (!world.lastTime) {
-        world.lastTime = time;
-      }
-
-      const dt = Math.min(
-        40,
-        time - world.lastTime
+      ctx.strokeRect(
+        7,
+        7,
+        width - 14,
+        height - 14
       );
 
-      world.lastTime = time;
+      ctx.restore();
 
-      update(dt, time);
-      draw(time);
+      drawPaperTexture(
+        ctx,
+        width,
+        height
+      );
 
-      animationFrame =
-        requestAnimationFrame(frame);
-    }
+      animationRef.current =
+        requestAnimationFrame(draw);
+    };
 
-    animationFrame =
-      requestAnimationFrame(frame);
-
-    function pointerMove(e) {
-      const rect =
-        canvas.getBoundingClientRect();
-
-      const clientX =
-        e.touches?.[0]?.clientX ??
-        e.clientX;
-
-      const clientY =
-        e.touches?.[0]?.clientY ??
-        e.clientY;
-
-      const x =
-        (clientX - rect.left) /
-        rect.width;
-
-      const y =
-        (clientY - rect.top) /
-        rect.height;
-
-      const world = worldRef.current;
-
-      world.player.targetX =
-        clamp(x, 0.04, 0.96);
-
-      world.player.targetY =
-        clamp(y, 0.58, 0.82);
-    }
-
-    function click(e) {
-      const rect =
-        canvas.getBoundingClientRect();
-
-      const x =
-        (e.clientX - rect.left) /
-        rect.width;
-
-      const y =
-        (e.clientY - rect.top) /
-        rect.height;
-
-      /* cafe */
-
-      if (
-        flyerVisible &&
-        x > 0.4 &&
-        x < 0.6 &&
-        y > 0.43 &&
-        y < 0.7
-      ) {
-        if (onEnterCafe) {
-          onEnterCafe();
-        }
-
-        return;
-      }
-
-      /* NPC interaction */
-
-      const world =
-        worldRef.current;
-
-      world.npc.forEach((npc) => {
-        const dx = npc.x - x;
-        const dy = npc.y - y;
-
-        if (
-          Math.sqrt(dx * dx + dy * dy) <
-          0.06
-        ) {
-          npc.state = "talk";
-          npc.expression =
-            npc.expression === "happy"
-              ? "surprised"
-              : "happy";
-
-          npc.bubble =
-            npc.dialogue[
-              npc.dialogueIndex %
-                npc.dialogue.length
-            ];
-
-          npc.dialogueIndex++;
-
-          npc.bubbleUntil =
-            performance.now() + 4000;
-        }
-      });
-    }
-
-    canvas.addEventListener(
-      "pointerdown",
-      pointerMove
-    );
-
-    canvas.addEventListener(
-      "click",
-      click
-    );
-
-    canvas.addEventListener(
-      "touchstart",
-      pointerMove,
-      { passive: true }
-    );
+    animationRef.current =
+      requestAnimationFrame(draw);
 
     return () => {
-      stopped = true;
+      if (
+        animationRef.current
+      ) {
+        cancelAnimationFrame(
+          animationRef.current
+        );
+      }
 
-      cancelAnimationFrame(
-        animationFrame
-      );
-
-      window.removeEventListener(
-        "resize",
-        resize
-      );
-
-      canvas.removeEventListener(
-        "pointerdown",
-        pointerMove
-      );
-
-      canvas.removeEventListener(
-        "click",
-        click
-      );
-
-      canvas.removeEventListener(
-        "touchstart",
-        pointerMove
-      );
+      if (resizeObserver) {
+        resizeObserver.disconnect();
+      }
     };
-  }, [
-    playerGender,
-    flyerVisible,
-    arrival,
-    onEnterCafe,
-    onNotice
-  ]);
+  }, [playerGender, flyerVisible, arrival, selectedNpc]);
+
+  const getPointerPosition = (
+    event
+  ) => {
+    const canvas =
+      canvasRef.current;
+
+    if (!canvas) return null;
+
+    const rect =
+      canvas.getBoundingClientRect();
+
+    const clientX =
+      event.touches
+        ? event.touches[0].clientX
+        : event.clientX;
+
+    const clientY =
+      event.touches
+        ? event.touches[0].clientY
+        : event.clientY;
+
+    return {
+      x: clamp(
+        (clientX - rect.left) /
+          rect.width,
+        0.06,
+        0.94
+      ),
+      y:
+        (clientY - rect.top) /
+        rect.height,
+    };
+  };
+
+  const handlePointer = (
+    event
+  ) => {
+    event.preventDefault();
+
+    const position =
+      getPointerPosition(event);
+
+    if (!position) return;
+
+    playerRef.current.targetX =
+      position.x;
+
+    setSelectedNpc(null);
+
+    if (
+      position.y > 0.52 &&
+      position.y < 0.86
+    ) {
+      setHint(
+        "WALKING... TAP ANOTHER PLACE TO MOVE"
+      );
+    }
+  };
+
+  const handleCanvasClick = (
+    event
+  ) => {
+    const position =
+      getPointerPosition(event);
+
+    if (!position) return;
+
+    const nearest =
+      npcRef.current
+        .map((npc) => ({
+          npc,
+          distance:
+            Math.abs(
+              npc.currentX -
+                position.x
+            ),
+        }))
+        .sort(
+          (a, b) =>
+            a.distance -
+            b.distance
+        )[0];
+
+    if (
+      nearest &&
+      nearest.distance <
+        0.08 &&
+      position.y > 0.48
+    ) {
+      setSelectedNpc(
+        nearest.npc.id
+      );
+
+      setHint(
+        `${nearest.npc.name} noticed you.`
+      );
+
+      if (onNotice) {
+        onNotice(
+          `${nearest.npc.name}: ${nearest.npc.dialogue}`
+        );
+      }
+
+      return;
+    }
+
+    handlePointer(event);
+  };
+
+  useEffect(() => {
+    if (flyerVisible) {
+      setCafeReady(true);
+
+      setHint(
+        "THE FLYER IS HERE · FIND THE NET CAFE"
+      );
+    }
+  }, [flyerVisible]);
 
   return (
-    <div className="comic-world">
+    <div
+      ref={wrapperRef}
+      className="comic-world"
+    >
       <canvas
         ref={canvasRef}
         className="comic-world-canvas"
-        aria-label="Dear Yesterday Spencer Plaza world"
+        onClick={handleCanvasClick}
+        onTouchStart={handlePointer}
+        onPointerDown={handlePointer}
+        aria-label="Dear Yesterday comic world"
       />
 
       <div className="comic-world-hint">
-        TAP ANYWHERE TO WALK • TAP PEOPLE TO TALK
+        {hint}
       </div>
 
-      {flyerVisible && (
+      <div className="comic-world-era">
+        CHENNAI · 2001
+      </div>
+
+      {cafeReady && (
         <button
+          type="button"
           className="comic-cafe-button"
-          onClick={onEnterCafe}
+          onClick={() => {
+            if (onEnterCafe) {
+              onEnterCafe();
+            }
+          }}
         >
           ENTER NET CAFE →
         </button>
       )}
-
-      <div className="comic-world-era">
-        CHENNAI • 2001
-      </div>
     </div>
   );
 }
