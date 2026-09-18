@@ -142,7 +142,21 @@ export default function Home() {
     if (authMode === 'login') {
       const { data,error } = await sb.auth.signInWithPassword({ email,password });
       if (error) return setAuthMsg(error.message);
-      await ensureProfile(data.session); setView('world'); setScene('street'); return;
+      await ensureProfile(data.session);
+
+if (pendingCafeComputer !== null) {
+  setComputer(pendingCafeComputer);
+  setPendingCafeComputer(null);
+  setView('world');
+  setScene('cafe');
+  setAuthMsg('');
+  setNotice('Welcome back. Your computer is ready.');
+} else {
+  setView('world');
+  setScene('street');
+}
+
+return;
     }
     try { window.localStorage.setItem('dy_player_gender',playerGender); } catch {}
     const { data,error } = await sb.auth.signUp({ email,password,options:{data:{username,display_name:displayName,bio,player_gender:playerGender}} });
