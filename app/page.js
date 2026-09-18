@@ -416,7 +416,114 @@ if (pendingCafeComputer !== null) {
   </>;
 }
 
-function Cafe({computer,setComputer,leaveCafe,openMail,openShops}){
+function Cafe({
+  computer,
+  setComputer,
+  leaveCafe,
+  openMail,
+  openShops,
+}) {
+  return (
+    <section className="cafe-scene-v2">
+      <div className="cafe-ceiling">
+        <span>SPENCER PLAZA</span>
+        <b>NET CAFÉ</b>
+        <small>EST. 2000 · 20 COMPUTERS · ₹20 / HOUR</small>
+      </div>
+
+      <div className="cafe-interior">
+        <div className="cafe-window">
+          <span>INTERNET</span>
+          <b>OPEN</b>
+          <small>10 AM — 9 PM</small>
+        </div>
+
+        <div className="cafe-wall-poster">
+          <small>PLEASE</small>
+          <b>LOG OFF</b>
+          <span>WHEN FINISHED</span>
+        </div>
+
+        <div className="cafe-counter-v2">
+          <div className="counter-sign">NET CAFÉ</div>
+
+          <div className="cafe-owner-v2">
+            <div className="owner-head" />
+            <div className="owner-body" />
+            <b>RAMESH</b>
+          </div>
+
+          <div className="counter-machine">
+            <span />
+            <span />
+          </div>
+        </div>
+
+        <div className="pc-grid">
+          {Array.from({ length: 20 }, (_, i) => {
+            const selected = computer === i;
+
+            return (
+              <button
+                key={i}
+                className={`pc-station ${selected ? 'selected' : ''}`}
+                onClick={() => setComputer(i)}
+              >
+                <span className="pc-monitor">
+                  <i>
+                    {selected
+                      ? 'READY'
+                      : 'ONLINE'}
+                  </i>
+                </span>
+
+                <span className="pc-keyboard" />
+
+                <b>
+                  PC {String(i + 1).padStart(2, '0')}
+                </b>
+
+                {selected && (
+                  <em>YOU ARE HERE</em>
+                )}
+              </button>
+            );
+          })}
+        </div>
+
+        <button
+          className="cafe-shop-corner-v2"
+          onClick={openShops}
+        >
+          <b>RETRO SHOP</b>
+          <span>CDs · BOOKS · CLOTHES</span>
+        </button>
+
+        <div className="cafe-floor-lines" />
+      </div>
+
+      <div className="cafe-bottom-v2">
+        <button onClick={leaveCafe}>
+          ← BACK TO SPENCER PLAZA
+        </button>
+
+        {computer !== null && (
+          <div className="selected-computer">
+            <span>
+              COMPUTER {String(computer + 1).padStart(2, '0')}
+            </span>
+
+            <b>SELECTED</b>
+
+            <button onClick={openMail}>
+              {`OPEN DEARMAIL →`}
+            </button>
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
   return <section className="cafe-scene"><div className="cafe-sign">SPENCER PLAZA NET CAFÉ <small>EST. 2000 · 20 COMPUTERS</small></div><div className="cafe-room"><div className="cafe-counter">NET CAFÉ <small>₹20 / HOUR</small></div><div className="cafe-npc cafe-owner"><span></span><b>RAMESH</b></div>{Array.from({length:20},(_,i)=><button key={i} className={`crt-pc ${computer===i?'chosen':''}`} onClick={()=>setComputer(i)}><span className="crt-screen">{computer===i?'DEARMAIL':'ONLINE'}</span><b>PC {String(i+1).padStart(2,'0')}</b><i></i></button>)}<div className="cafe-poster">DON'T FORGET<br/><b>LOG OFF.</b></div><button className="cafe-shop-corner" onClick={openShops}>RETRO SHOP CORNER<br/><small>CLOTHES · CDS · BOOKS →</small></button></div><div className="cafe-bottom"><button onClick={leaveCafe}>← BACK TO SPENCER PLAZA</button>{computer!==null&&<div className="computer-launch">COMPUTER {String(computer+1).padStart(2,'0')} SELECTED <button onClick={openMail}>OPEN DEARMAIL →</button></div>}</div></section>;
 }
 
