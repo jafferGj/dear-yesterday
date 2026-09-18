@@ -3,3 +3,146 @@
 .connect-box{margin:0 10px 10px;padding:15px;border:1px dashed #675f4b;background:#181710;color:#cfc3a0}.connect-box p{font-size:10px;color:#88816f;line-height:1.5}.connect-box button{background:#d8cfb0;border:0;color:#111;padding:10px;font-weight:900}.world-shelf{width:min(1180px,calc(100% - 24px));margin:10px auto 35px;display:flex;gap:7px;align-items:center;flex-wrap:wrap;padding:10px 12px;border:1px solid #363228;background:#11110e;color:#8d8674;font-size:8px;letter-spacing:1px}.world-shelf b{color:#d1c6a5;margin-right:8px}.world-shelf span{border:1px solid #3e392e;padding:7px}
 .social-form{display:grid;gap:8px;max-width:520px;margin:25px 0}.social-form input{background:#080807;border:1px solid #504a3b;color:#eee;padding:12px}.actions a{border:1px solid #4b4639;color:#ddd3b5;text-decoration:none;padding:7px 9px;font-size:9px}
 .top-actions{display:flex;align-items:center;gap:12px}.notify-button{background:transparent;border:1px solid #484334;color:#cfc3a2;padding:7px 9px;font-size:8px;letter-spacing:1px}.notify-button b{display:inline-grid;place-items:center;min-width:17px;height:17px;margin-left:5px;border-radius:50%;background:#d8cfb0;color:#111}.panel-head{display:flex;justify-content:space-between;align-items:flex-start;gap:18px}.panel-head .ghost-button{margin:0}.profile-editor{max-width:650px;display:grid;gap:12px;margin:25px 0}.profile-editor label{display:grid;gap:6px;color:#a59b81;font-size:9px;letter-spacing:1px}.profile-editor input,.profile-editor textarea,.auth-panel textarea{background:#080807;border:1px solid #504a3b;color:#eee;padding:12px;min-height:44px}.profile-editor textarea,.auth-panel textarea{min-height:110px;resize:vertical}.profile-editor select{background:#080807;border:1px solid #504a3b;color:#eee;padding:12px}.notification-list{display:grid;gap:8px;margin-top:30px}.notification{display:grid;grid-template-columns:24px 1fr;text-align:left;gap:10px;background:#17160f;border:1px solid #403b30;color:#d5c9a7;padding:14px}.notification:hover{border-color:#7c7258}.notification.read{opacity:.62}.notification-dot{font-size:11px}.notification span:nth-child(2){display:grid;gap:4px}.notification small{color:#9b927b;line-height:1.5}.notification i{font-style:normal;font-size:7px;color:#6e6859}.commerce-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-top:30px}.commerce-card{border:1px solid #514a39;background:#17160f;padding:18px;min-height:190px;display:flex;flex-direction:column}.commerce-card small{color:#9e957c;letter-spacing:1.5px}.commerce-card h2{font-size:18px;margin:12px 0}.commerce-card p{color:#918974;font-size:10px;line-height:1.6;flex:1}.commerce-card a{display:inline-block;border:1px solid #6a6048;color:#ded2b1;text-decoration:none;padding:10px;font-size:9px;text-align:center}.cafe-shop-corner{position:absolute;right:28px;bottom:25px;background:#d8cfb0;color:#111;border:2px solid #312d22;padding:9px;font-weight:900;font-size:8px;transform:rotate(2deg)}.cafe-shop-corner small{display:block;margin-top:4px}.shop-panel{position:fixed;z-index:45;inset:64px 0 0;overflow:auto;background:#080807eF;width:100%;margin:0;padding:25px}.shop-panel .passport-paper{width:min(1100px,100%);margin:auto}.static-notice{position:static;transform:none;margin:15px 0}.report-list{display:grid;gap:10px;margin-top:25px}.report-card{display:flex;justify-content:space-between;gap:20px;border:1px solid #4c4637;background:#17160f;padding:16px}.report-card h3{margin:7px 0;font-size:14px}.report-card p{font-size:9px;color:#918873;line-height:1.6}.report-actions{display:flex;gap:7px;align-items:center;flex-wrap:wrap}.report-actions button{background:#d8cfb0;color:#111;border:0;padding:9px;font-weight:900;font-size:8px}.admin-panel code{font-size:8px;word-break:break-all;color:#b8ad91}.cafe-npc{animation:people 1.4s ease-in-out infinite alternate}.npc{animation:people 1.7s ease-in-out infinite alternate}.player{transition:left .2s,top .2s}.flyer:not(.revealed){pointer-events:none}@media(max-width:700px){.commerce-grid{grid-template-columns:1fr}.report-card{flex-direction:column}.panel-head{flex-direction:column}.shop-panel{padding:12px}.cafe-shop-corner{right:12px;bottom:12px}.top-actions{gap:6px}.notify-button{font-size:7px}}
+/* =========================================================
+   DEAR YESTERDAY — COMIC WORLD ENGINE
+   ========================================================= */
+
+.comic-world {
+  position: relative;
+  width: 100%;
+  height: min(72vh, 680px);
+  min-height: 500px;
+  overflow: hidden;
+  background: #cfc39d;
+  border: 4px solid #211f1a;
+  box-shadow:
+    7px 7px 0 #211f1a,
+    inset 0 0 0 2px #d8cfb0;
+  touch-action: none;
+  user-select: none;
+}
+
+.comic-world-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  cursor: crosshair;
+  touch-action: none;
+}
+
+.comic-world-hint {
+  position: absolute;
+  left: 14px;
+  top: 14px;
+  padding: 7px 10px;
+  border: 2px solid #27241d;
+  background: rgba(238, 226, 184, 0.94);
+  color: #27241d;
+  font:
+    700 10px/1.2
+    monospace;
+  letter-spacing: 0.04em;
+  transform: rotate(-1deg);
+  pointer-events: none;
+  box-shadow: 3px 3px 0 rgba(32, 30, 25, 0.25);
+}
+
+.comic-world-era {
+  position: absolute;
+  right: 14px;
+  bottom: 12px;
+  padding: 6px 9px;
+  border: 2px solid #27241d;
+  background: rgba(238, 226, 184, 0.9);
+  color: #27241d;
+  font:
+    700 10px/1
+    monospace;
+  pointer-events: none;
+  transform: rotate(1deg);
+}
+
+.comic-cafe-button {
+  position: absolute;
+  left: 50%;
+  top: 48%;
+  transform: translate(-50%, -50%) rotate(-1deg);
+
+  border: 3px solid #211f1a;
+  background: #eee2b8;
+  color: #211f1a;
+
+  padding: 13px 18px;
+
+  font:
+    900 12px/1
+    monospace;
+
+  letter-spacing: 0.04em;
+
+  box-shadow:
+    4px 4px 0 #211f1a;
+
+  cursor: pointer;
+
+  transition:
+    transform 120ms ease,
+    box-shadow 120ms ease;
+}
+
+.comic-cafe-button:hover {
+  transform:
+    translate(-50%, -50%)
+    rotate(1deg)
+    scale(1.03);
+
+  box-shadow:
+    6px 6px 0 #211f1a;
+}
+
+.comic-cafe-button:active {
+  transform:
+    translate(-48%, -47%)
+    rotate(1deg);
+
+  box-shadow:
+    2px 2px 0 #211f1a;
+}
+
+@media (max-width: 700px) {
+  .comic-world {
+    height: 68vh;
+    min-height: 430px;
+    border-width: 3px;
+    box-shadow:
+      5px 5px 0 #211f1a,
+      inset 0 0 0 1px #d8cfb0;
+  }
+
+  .comic-world-hint {
+    font-size: 8px;
+    padding: 6px 7px;
+  }
+
+  .comic-world-era {
+    font-size: 8px;
+    padding: 5px 7px;
+  }
+
+  .comic-cafe-button {
+    padding: 11px 13px;
+    font-size: 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .comic-world {
+    height: 64vh;
+    min-height: 390px;
+  }
+
+  .comic-world-hint {
+    max-width: 150px;
+    line-height: 1.35;
+  }
+}
