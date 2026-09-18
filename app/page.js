@@ -162,8 +162,26 @@ return;
     const { data,error } = await sb.auth.signUp({ email,password,options:{data:{username,display_name:displayName,bio,player_gender:playerGender}} });
     if (error) return setAuthMsg(error.message);
     if (data.session) {
-      await ensureProfile(data.session,{username,displayName,bio,playerGender});
-      setAuthMsg('Account created. Welcome to 2001.'); setView('world'); setScene('street');
+      await ensureProfile(data.session, {
+  username,
+  displayName,
+  bio,
+  playerGender
+});
+
+setAuthMsg('');
+
+if (pendingCafeComputer !== null) {
+  setComputer(pendingCafeComputer);
+  setPendingCafeComputer(null);
+  setView('world');
+  setScene('cafe');
+  setNotice('Account created. Your computer is ready.');
+} else {
+  setView('world');
+  setScene('street');
+  setNotice('Account created. Welcome to 2001.');
+}
     } else {
       setAuthMsg('Account created. Confirm the Supabase email before member features. You can enter Spencer Plaza as a guest now.');
       setView('world'); setScene('street');
